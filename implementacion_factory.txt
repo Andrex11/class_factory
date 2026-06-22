@@ -1,0 +1,46 @@
+Pasos para implementarlo
+Paso 1: Crear una clase base o interfaz
+Ejemplo: class MetodoPago con un metodo pagar(monto).
+
+Paso 2: Crear productos concretos
+Ejemplo: PagoTarjeta, PagoPaypal, PagoTransferencia.
+Cada uno implementa pagar(monto) a su manera.
+
+Paso 3: Crear la fabrica
+Ejemplo: class FabricaPago con un metodo crear_pago(tipo).
+Dentro de crear_pago(tipo), usar if/elif para devolver la instancia correcta.
+
+Paso 4: Usar la fabrica desde el cliente
+El cliente pide el tipo de pago y llama a la fabrica.
+Despues trabaja con el objeto devuelto usando la interfaz comun.
+
+Ejemplo minimo (Python)
+
+from abc import ABC, abstractmethod
+
+class MetodoPago(ABC):
+    @abstractmethod
+    def pagar(self, monto):
+        pass
+
+class PagoTarjeta(MetodoPago):
+    def pagar(self, monto):
+        return f"Pagando ${monto} con tarjeta"
+
+class PagoPaypal(MetodoPago):
+    def pagar(self, monto):
+        return f"Pagando ${monto} con PayPal"
+
+class FabricaPago:
+    @staticmethod
+    def crear_pago(tipo):
+        if tipo == "tarjeta":
+            return PagoTarjeta()
+        elif tipo == "paypal":
+            return PagoPaypal()
+        else:
+            raise ValueError("Tipo de pago no soportado")
+
+# Cliente
+metodo = FabricaPago.crear_pago("tarjeta")
+print(metodo.pagar(150))
