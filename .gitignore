@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.DS_Store
+
+# Logs y bases de datos
+*.log
+*.db
+*.sqlite3
+
+# Archivos de configuración sensibles
+*.env
+*.secret
+*.key
+config.json
+
+# OS
+Thumbs.db
+.DS_Store
