@@ -1,15 +1,15 @@
+from payment_factory import PaymentFactory
+
 class PaymentService:
     def pay(self, payment_type: str, amount: float) -> str:
         if amount <= 0:
             return "Monto invalido"
 
-        if payment_type == "efectivo":
-            return self._pay_cash(amount)
-        elif payment_type == "tarjeta":
-            return self._pay_card(amount)
-        elif payment_type == "transferencia":
-            return self._pay_transfer(amount)
-
+        metodo = PaymentFactory.crear_pago(payment_type, self)
+        
+        if metodo:
+            return metodo.pagar(amount)
+        
         return f"Medio de pago no soportado: {payment_type}"
 
     def _pay_cash(self, amount: float) -> str:
