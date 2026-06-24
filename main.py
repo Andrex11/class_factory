@@ -13,27 +13,32 @@ from utils.excepciones import MetodoPagoNoSoportadoError
 
 
 class AppPagos:
+    """Aplicación interactiva para procesar pagos"""
+
     def __init__(self):
         self.historial = []
         self.usuario_actual = None
 
     def limpiar_pantalla(self):
+        """Limpia la consola"""
         os.system("cls" if os.name == "nt" else "clear")
 
     def mostrar_encabezado(self, titulo):
+        """Muestra un encabezado con formato"""
         print("\n" + "=" * 60)
-        print(f"🏦 {titulo}")
+        print(f"{titulo}")
         print("=" * 60)
 
     def mostrar_menu_principal(self):
+        """Muestra el menú principal"""
         self.limpiar_pantalla()
         self.mostrar_encabezado("SISTEMA DE PROCESAMIENTO DE PAGOS")
-        print("\n📋 OPCIONES:")
-        print("   1. 💳 Procesar un pago")
-        print("   2. 📊 Ver historial de pagos")
-        print("   3. 📋 Ver métodos de pago disponibles")
-        print("   4. 🗑️ Limpiar historial")
-        print("   5. 🚪 Salir")
+        print("\nOPCIONES:")
+        print("   1.  Procesar un pago")
+        print("   2.  Ver historial de pagos")
+        print("   3.  Ver métodos de pago disponibles")
+        print("   4.  Limpiar historial")
+        print("   5.  Salir")
         print("\n" + "=" * 60)
 
     def mostrar_metodos_pago(self):
@@ -41,21 +46,20 @@ class AppPagos:
         self.mostrar_encabezado("MÉTODOS DE PAGO DISPONIBLES")
 
         metodos = PagoFactory.listar_metodos()
-        print("\n📋 Selecciona un método de pago:")
+        print("\n Selecciona un método de pago:")
         for opcion, nombre in metodos.items():
-            iconos = {"1": "💳", "2": "🌐", "3": "🏦", "4": "🪙"}
-            print(f"   {opcion}. {iconos.get(opcion, '')} {nombre}")
+            print(f"   {opcion}.  {nombre}")
 
-        print("\n   0. 🔙 Volver al menú principal")
+        print("\n   0.  Volver al menú principal")
         print("\n" + "=" * 60)
 
     def solicitar_datos_tarjeta(self):
-        print("\n💳 DATOS DE LA TARJETA:")
+        print("\n DATOS DE LA TARJETA:")
         nombre = input("   Titular de la tarjeta: ").strip()
         numero = input("   Número de tarjeta (16 dígitos): ").strip().replace(" ", "")
         cvv = input("   CVV (3 dígitos): ").strip()
 
-        # Validaciones básicas
+        # Validaciones
         while len(numero) != 16 or not numero.isdigit():
             print("   ❌ Número inválido. Debe tener 16 dígitos.")
             numero = (
@@ -66,10 +70,14 @@ class AppPagos:
             print("   ❌ CVV inválido. Debe tener 3 dígitos.")
             cvv = input("   CVV (3 dígitos): ").strip()
 
-        return {"numero_tarjeta": numero, "cvv": cvv, "nombre": nombre}
+        return {
+            "nombre": nombre,
+            "numero_tarjeta": numero,
+            "cvv": cvv,
+        }
 
     def solicitar_datos_paypal(self):
-        print("\n🌐 DATOS DE PAYPAL:")
+        print("\n DATOS DE PAYPAL:")
         email = input("   Email de PayPal: ").strip()
         password = input("   Contraseña: ").strip()
 
@@ -84,7 +92,7 @@ class AppPagos:
         return {"email": email, "password": password}
 
     def solicitar_datos_transferencia(self):
-        print("\n🏦 DATOS DE TRANSFERENCIA:")
+        print("\n DATOS DE TRANSFERENCIA:")
         titular = input("   Titular de la cuenta: ").strip()
         banco = input("   Banco: ").strip()
         cuenta = input("   Número de cuenta: ").strip()
@@ -96,7 +104,7 @@ class AppPagos:
         return {"titular": titular, "banco": banco, "cuenta": cuenta}
 
     def solicitar_datos_cripto(self):
-        print("\n🪙 DATOS DE CRIPTOMONEDAS:")
+        print("\n DATOS DE CRIPTOMONEDAS:")
         wallet = input("   Dirección de wallet: ").strip()
         red = input("   Red (Ej: Bitcoin, Ethereum, BSC): ").strip()
 
@@ -110,20 +118,34 @@ class AppPagos:
         self.limpiar_pantalla()
         self.mostrar_metodos_pago()
 
-        opcion = input("\n👉 Selecciona una opción: ").strip()
+        opcion = input("\n Selecciona una opción: ").strip()
 
         if opcion == "0":
             return
 
-        # Solicitar monto
+        metodos_disponibles = PagoFactory.listar_metodos()
+        if opcion not in metodos_disponibles:
+            print("❌ Opción no válida. Selecciona 1, 2, 3 o 4.")
+            input("\nPresiona Enter para continuar...")
+            return
+
+        # Solicitar monto con validación
         try:
-            monto = float(input("\n💰 Ingresa el monto a pagar: $"))
+            monto_str = input("\n Ingresa el monto a pagar: $")
+            # Eliminar comas y espacios
+            monto_str = monto_str.replace(",", "").strip()
+            monto = float(monto_str)
+
             if monto <= 0:
                 print("❌ El monto debe ser mayor a 0")
                 input("\nPresiona Enter para continuar...")
                 return
+            if monto > 1_000_000_000_000_000:  # Límite de 1 billón
+                print("❌ Monto excesivo. Máximo permitido: $1,000,000,000,000,000")
+                input("\nPresiona Enter para continuar...")
+                return
         except ValueError:
-            print("❌ Monto inválido. Ingresa un número.")
+            print("❌ Monto inválido. Ingresa un número válido.")
             input("\nPresiona Enter para continuar...")
             return
 
@@ -137,16 +159,13 @@ class AppPagos:
             kwargs = self.solicitar_datos_transferencia()
         elif opcion == "4":
             kwargs = self.solicitar_datos_cripto()
-        else:
-            print("❌ Opción no válida")
-            input("\nPresiona Enter para continuar...")
-            return
 
         # Crear y procesar el pago
         try:
-            print("\n⏳ Procesando pago...")
+            print("\n Procesando pago...")
             time.sleep(1.5)  # Simular procesamiento
 
+            # Crear el método de pago usando la fábrica
             metodo = PagoFactory.crear_pago(opcion, **kwargs)
             resultado = metodo.pagar(monto)
 
@@ -154,7 +173,7 @@ class AppPagos:
             self.historial.append(
                 {
                     "fecha": time.strftime("%Y-%m-%d %H:%M:%S"),
-                    "metodo": PagoFactory.listar_metodos()[opcion],
+                    "metodo": metodos_disponibles[opcion],
                     "monto": monto,
                     "resultado": resultado,
                     "exitoso": True,
@@ -162,10 +181,10 @@ class AppPagos:
             )
 
             print("\n" + "=" * 60)
-            print("🎉 ¡PAGO EXITOSO!")
+            print(" ¡PAGO EXITOSO!")
             print("=" * 60)
             print(f"\n{resultado}")
-            print(f"\n📝 Referencia: #{len(self.historial):04d}")
+            print(f"\n Referencia: #{len(self.historial):04d}")
 
         except MetodoPagoNoSoportadoError as e:
             print(f"\n{e}")
@@ -182,17 +201,17 @@ class AppPagos:
         if not self.historial:
             print("\n📭 No hay pagos registrados aún.")
         else:
-            print("\n📊 REGISTRO DE PAGOS:")
+            print("\n REGISTRO DE PAGOS:")
             print("-" * 60)
             for i, pago in enumerate(self.historial, 1):
                 print(f"\n{i}. {pago['fecha']}")
-                print(f"   📌 Método: {pago['metodo']}")
-                print(f"   💰 Monto: ${pago['monto']:.2f}")
-                print(f"   ✅ Estado: {pago['resultado']}")
+                print(f"    Método: {pago['metodo']}")
+                print(f"    Monto: ${pago['monto']:.2f}")
+                print(f"    Estado: {pago['resultado']}")
             print("\n" + "-" * 60)
-            print(f"\n📊 Total de pagos: {len(self.historial)}")
+            print(f"\n Total de pagos: {len(self.historial)}")
             total = sum(p["monto"] for p in self.historial)
-            print(f"💵 Monto total procesado: ${total:.2f}")
+            print(f" Monto total procesado: ${total:.2f}")
 
         input("\nPresiona Enter para continuar...")
 
@@ -202,14 +221,14 @@ class AppPagos:
         self.mostrar_encabezado("LIMPIAR HISTORIAL")
 
         if not self.historial:
-            print("\n📭 El historial ya está vacío.")
+            print("\n El historial ya está vacío.")
         else:
             confirmacion = input(
-                f"\n⚠️ ¿Estás seguro de eliminar {len(self.historial)} registros? (s/n): "
+                f"\n ¿Estás seguro de eliminar {len(self.historial)} registros? (s/n): "
             ).lower()
             if confirmacion == "s":
                 self.historial.clear()
-                print("\n✅ Historial limpiado correctamente.")
+                print("\n Historial limpiado correctamente.")
             else:
                 print("\n❌ Operación cancelada.")
 
@@ -221,15 +240,15 @@ class AppPagos:
         self.mostrar_encabezado("MÉTODOS DE PAGO DISPONIBLES")
 
         metodos = PagoFactory.listar_metodos()
-        print("\n📋 Métodos de pago soportados:")
+        print("\n Métodos de pago soportados:")
         for opcion, nombre in metodos.items():
             print(f"   {opcion}. {nombre}")
 
-        print("\n🔧 Cada método requiere datos específicos:")
-        print("   💳 Tarjeta: Número, CVV, Titular")
-        print("   🌐 PayPal: Email, Contraseña")
-        print("   🏦 Transferencia: Banco, Cuenta, Titular")
-        print("   🪙 Cripto: Wallet, Red")
+        print("\n Cada método requiere datos específicos:")
+        print("    Tarjeta: Número, CVV, Titular")
+        print("    PayPal: Email, Contraseña")
+        print("    Transferencia: Banco, Cuenta, Titular")
+        print("    Cripto: Wallet, Red")
 
         input("\nPresiona Enter para continuar...")
 
@@ -238,7 +257,7 @@ class AppPagos:
         while True:
             self.mostrar_menu_principal()
 
-            opcion = input("\n👉 Selecciona una opción: ").strip()
+            opcion = input("\n Selecciona una opción: ").strip()
 
             if opcion == "1":
                 self.procesar_pago_interactivo()
@@ -249,8 +268,8 @@ class AppPagos:
             elif opcion == "4":
                 self.limpiar_historial()
             elif opcion == "5":
-                print("\n👋 ¡Gracias por usar el sistema de pagos!")
-                print("🔒 Cerrando sesión...")
+                print("\n ¡Gracias por usar el sistema de pagos!")
+                print(" Cerrando sesión...")
                 break
             else:
                 print("\n❌ Opción no válida. Por favor, selecciona 1-5.")

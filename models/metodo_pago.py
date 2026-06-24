@@ -16,7 +16,7 @@ class MetodoPago(ABC):
 
 
 class PagoTarjeta(MetodoPago):
-    def __init__(self, numero_tarjeta: str = None, cvv: str = None):
+    def __init__(self, numero_tarjeta: str = None, cvv: str = None, nombre: str = None):
         self.numero_tarjeta = numero_tarjeta
         self.cvv = cvv
         self.nombre = nombre
