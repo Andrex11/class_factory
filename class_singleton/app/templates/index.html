@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUD Basico Flask</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+        max-width: 700px;
+      }
+      .fila,
+      .bloque {
+        margin-bottom: 0.8rem;
+      }
+      label {
+        display: inline-block;
+        width: 90px;
+      }
+      input {
+        padding: 0.4rem;
+        width: 260px;
+      }
+      button {
+        padding: 0.5rem 0.8rem;
+        cursor: pointer;
+        margin-right: 0.3rem;
+      }
+      #resultado {
+        margin-top: 1rem;
+        color: #1f2937;
+        white-space: pre-wrap;
+        background: #f7f7f7;
+        padding: 0.8rem;
+        border: 1px solid #e5e7eb;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th,
+      td {
+        border: 1px solid #d1d5db;
+        padding: 0.4rem;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CRUD basico</h1>
+
+    <form action="/operar" method="post">
+      <div class="fila">
+        <label for="id">ID:</label>
+        <input id="id" name="id" type="number" placeholder="Ejemplo: 1" />
+      </div>
+
+      <div class="fila">
+        <label for="nombre">Nombre:</label>
+        <input id="nombre" name="nombre" type="text" placeholder="Nombre del item" />
+      </div>
+
+      <div class="fila">
+        <label for="descripcion">Descripcion:</label>
+        <input
+          id="descripcion"
+          name="descripcion"
+          type="text"
+          placeholder="Descripcion del item"
+        />
+      </div>
+
+      <div class="fila">
+        <button type="submit" name="accion" value="registrar">Registrar</button>
+        <button type="submit" name="accion" value="seleccionar">Seleccionar</button>
+        <button type="submit" name="accion" value="actualizar">Actualizar</button>
+        <button type="submit" name="accion" value="eliminar">Eliminar</button>
+        <button type="submit" name="accion" value="listar">Listar todos</button>
+      </div>
+    </form>
+
+    <div id="resultado">{{ resultado }}</div>
+
+    {% if registros %}
+    <div class="bloque">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripcion</th>
+            <th>Creado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in registros %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.nombre }}</td>
+            <td>{{ item.descripcion }}</td>
+            <td>{{ item.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </body>
+</html>

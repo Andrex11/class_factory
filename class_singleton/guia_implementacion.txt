@@ -1,0 +1,234 @@
+Descripción Detallada de Cada Paso
+
+Paso 1: Crear laatributo de clase y el método __new__
+
+El método __new__ es el constructor en Python. Se ejecuta antes que
+__init__.
+
+Aquí es donde verificamos si la instancia ya existe:
+
+    class ConexionBaseDatos:
+        _instancia = None  # Atributo de clase - compartido por todas las instancias
+        
+        def __new__(cls, nombre_bd):
+            # Si aún no existe la instancia, la creamos
+            if cls._instancia is None:
+                cls._instancia = super().__new__(cls)
+                cls._instancia.nombre_bd = nombre_bd
+                print(f"Conectando a {nombre_bd}...")
+            else:
+                # Si ya existe, la reutilizamos
+
+    ### Paso 2: Agregar la lógica de Singleton (atributo de clase)
+
+    ```python
+    class ConexionBaseDatos:
+        _instancia = None  # Atributo de clase para guardar la instancia única
+        
+        def __new__(cls, nombre_bd):
+            if cls._instancia is None:
+                cls._instancia = super().__new__(cls)
+                cls._instancia.nombre_bd = nombre_bd
+                print(f"Conectando a {nombre_bd}...")
+            else:
+                print(f"Reutilizando conexión existente a {cls._instancia.nombre_bd}")
+            
+            return cls._instancia
+        
+        def consultar(self, sql):
+            print(f"Ejecutando: {sql}")
+            return f"Resultado de {self.nombre_bd}"
+
+Paso 3: Probar que solo existe una instancia
+
+    # Crear la primera instancia
+    conexion1 = ConexionBaseDatos("usuarios.db")
+    resultado1 = conexion1.consultar("SELECT * FROM usuarios")
+    print(f"Conexion 1: {id(conexion1)}")
+
+    # Crear la segunda instancia (debería ser la MISMA)
+    conexion2 = ConexionBaseDatos("productos.db")
+    resultado2 = conexion2.consultar("SELECT * FROM productos")
+    print(f"Conexion 2: {id(conexion2)}")
+
+    # Verificar que son la misma instancia
+    pr# Paso 4: Crear métodos para acceder a la instancia
+
+    Si prefieres una sintaxis más clara, puedes agregar un método de clase
+
+    ---
+
+    ## Implementación con método de clase (alternativa)
+
+    Otra forma más simple sin usar `__new__`:
+
+    ```python
+    class ConexionBaseDatos:
+        _instancia = None
+        
+        def __init__(self, nombre_bd):
+            self.nombre_bd = nombre_bd
+            print(f"Inicializando conexión a {nombre_bd}...")
+        
+        @classmethod
+        def obtener_instancia(cls, nombre_bd="base_datos.db"):
+            if cls._instancia is None:
+                cls._instancia = cls(nombre_bd)
+            return cls._instancia
+        
+        def consultar(self, sql):
+            print(f"Ejecutando: {sql}")
+            return f"Resultado de {self.nombre_bd}"
+
+Uso:
+
+    conexion1 = ConexionBaseDatos.obtener_instancia("usuarios.db")
+    conexion2 = ConexionBaseDatos.obtener_instancia("usuarios.db")
+
+    print(f"¿Son iguales? {conexion1 is conexion2}")  # True
+
+------------------------------------------------------------------------
+
+Paso 5: Probar en múltiples módulos
+
+Para verificar que el Singleton funciona correctamente:
+
+    # En archivo1.py
+    from app.singleton_db import DatabaseSingleton
+
+    conexion_archivo1 = DatabaseSingleton("usuarios.db")
+    print(f"ID en archivo1: {id(conexion_archivo1)}")
+
+    # En archivo2.py
+    from app.singleton_db import DatabaseSingleton
+
+    conexion_archivo2 = DatabaseSingleton("usuarios.db")
+    print(f"ID en archivo2: {id(conexion_archivo2)}")
+
+    # Si el patrón funciona, ambos IDs serán idénticos
+
+------------------------------------------------------------------------
+
+Implementación con Método de Clase (Alternativa)
+
+Si deseas evitar __new__, puedes usar @classmethod:
+
+    import threading
+    Implementación con Thread-Safe (Multi-hilo)
+
+    Para aplicaciones que usan múltiples hilos simultáneamente:
+
+    ```python
+    impoContexto:
+    Actualmente, en tu proyecto se abre una conexión nueva cada vez que llamas a una función. Con Singleton, habrá **una sola conexión** reutilizada en todo el proyecto.
+
+    ### Pasos:
+
+    #### 1. Abre `app/singleton_db.py`
+
+    #### 2. Reemplaza el contenido con:ndado para sincronizar acceso
+        
+        def __new__(cls, nombre_bd):
+            if cls._instancia is None:
+                with cls._lock:  # Solo un hilo a la vez puede entrar
+                    if cls._instancia is None:
+                        cls._instancia = super().__new__(cls)
+                        cls._instancia.nombre_bd = nombre_bd
+                        print(f"Conectando a {nombre_bd}...")
+            
+            return cls._instancia
+        
+        def consultar(self, sql):
+            print(f"Ejecutando: {sql}")
+            return f"Resultado de {self.nombre_bd}"
+
+------------------------------------------------------------------------
+
+Ejercicio Práctico para tu P
+
+class ConexionBaseDatos: _instancia = None _lock = threading.Lock() #
+Candado para sincronizar acceso
+
+    def __new__(cls, nombre_bd):
+        if cls._instancia is None:
+            with cls._lock:  # Solo un hilo a la vez
+                if cls._instancia is None:
+                    cls._instancia = super().__new__(cls)
+                    cls._instancia.nombre_bd = nombre_bd
+                    print(f"Conectando a {nombre_bd}...")
+        
+        return cls._instancia
+
+    def consultar(self, sql):
+        print(f"Ejecutando: {sql}")
+        return f"Resultado de {self.nombre_bd}"
+
+    ---
+
+    ## Ejercicio práctico para tu proyecto
+
+    ### Objetivo:
+    Implementar Singleton para la conexión a SQLite en `app/singleton_db.py`.
+
+    ### Pasos:
+
+    1. **Abre `app/singleton_db.py`**
+
+    2. **Reemplaza el contenido con:**
+
+    ```python
+    import sqlite3
+
+
+    class DatabaseSingleton:
+        _instancia = None  # Instancia única guardada aquí
+        
+    #### 3. Actualiza `app/database.py`data.sqlite3"):
+            # Si no existe, crear la instancia
+            if cls._instancia is None:
+                cls._instancia = super().__new__(cls)
+                cls._instancia._conexion = sqlite3.connect(db_path, check_same_thread=False)
+                cls._instancia._conexion.row_factory = sqlite3.Row
+                print(f"Conexión creada a {db_path}")
+            else:
+                print("Reutilizando conexión existente")
+            
+            return cls._instancia
+        
+        def obtener_conexion(self):
+            """Devuelve la conexión única de la aplicación"""
+            return self._conexion
+        
+        def cerrar(self):
+            """Cierra la conexión y limpia la instancia"""
+            if self._conexion:
+                self._conexion.close()
+                self._conexion = None
+                DatabaseSingleton._instancia = None
+                print("Conexión cerrada")
+
+
+    def obtener_db(db_path="app_data.sqlite3"):
+        """Función de conveniencia para obtener la conexión singleton"""
+        instancia = DatabaseSingleton(db_path)
+        return instancia.obtener_conexion()
+
+3.  Actualiza app/database.py para usar el Singleton:
+
+    from .singleton_db import obtener_db
+
+
+    def get_db_connection(db_path):
+        return obtener_db(db_path)
+
+    #### 4. Verifica que funciona:gual...
+
+4.  Verifica que funciona:
+
+    # En cualquier módulo:
+    from app.singleton_db import DatabaseSingleton
+
+    conn1 = DatabaseSingleton()
+    conn2 = DatabaseSingleton()
+
+    print(conn1 is conn2)  # Debe mostrar: True
